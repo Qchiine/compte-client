@@ -299,6 +299,11 @@ body {
   color: var(--ink-faint);
 }
 
+.ledger-metric__hint--alert {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 .ledger-grid {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -627,6 +632,10 @@ body {
 
 .ledger-status--pending {
   color: var(--warning);
+}
+
+.ledger-status--failed {
+  color: var(--danger);
 }
 
 .ledger-status__action {

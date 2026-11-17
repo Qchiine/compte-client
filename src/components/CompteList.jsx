@@ -116,7 +116,18 @@ function CompteList({ comptes, loading, onDiscard }) {
                     </span>
                   </td>
                   <td data-label="Statut">
-                    {compte.pending ? (
+                    {compte.failed ? (
+                      <span className="ledger-status ledger-status--failed" title={compte.failureReason ?? ''}>
+                        Rejeté
+                        <button
+                          type="button"
+                          className="ledger-status__action"
+                          onClick={() => onDiscard(compte.id)}
+                        >
+                          Retirer
+                        </button>
+                      </span>
+                    ) : compte.pending ? (
                       <span className="ledger-status ledger-status--pending">
                         En attente
                         <button

@@ -41,11 +41,12 @@ export function useComptes() {
 
   const flushOutbox = useCallback(async () => {
     if (flushingRef.current) return 0;
-    const queue = outboxRef.current;
+    const queue = outboxRef.current.filter((entry) => !entry.failed);
     if (queue.length === 0) return 0;
 
     flushingRef.current = true;
     const delivered = [];
+    let rejected = 0;
 
     try {
       for (const entry of queue) {
@@ -54,11 +55,14 @@ export function useComptes() {
           delivered.push(entry.localId);
         } catch (requestError) {
           if (isNetworkError(requestError)) break;
-          setNotice({
-            tone: 'danger',
-            message: `Compte rejeté par l'API : ${requestError.response?.data?.message ?? requestError.message}`,
-          });
-          break;
+          rejected += 1;
+          const message = requestError.response?.data?.message ?? requestError.message;
+          const marked = outboxRef.current.map((item) =>
+            item.localId === entry.localId ? { ...item, failed: true, failureReason: message } : item,
+          );
+          outboxRef.current = marked;
+          setOutbox(marked);
+          setNotice({ tone: 'danger', message: `Création rejetée par l'API : ${message}` });
         }
       }
     } finally {
@@ -69,7 +73,9 @@ export function useComptes() {
       const remaining = outboxRef.current.filter((entry) => !delivered.includes(entry.localId));
       outboxRef.current = remaining;
       setOutbox(remaining);
-      setNotice({ tone: 'success', message: `${delivered.length} compte(s) synchronisé(s) avec l'API.` });
+      if (rejected === 0) {
+        setNotice({ tone: 'success', message: `${delivered.length} compte(s) synchronisé(s) avec l'API.` });
+      }
     }
 
     return delivered.length;
@@ -163,6 +169,7 @@ export function useComptes() {
   return {
     comptes,
     pendingCount: outbox.length,
+    failedCount: outbox.filter((entry) => entry.failed).length,
     syncState,
     lastSync,
     error,

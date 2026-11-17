@@ -71,6 +71,33 @@ describe('mergeComptes', () => {
     );
     expect(merged.map((compte) => compte.id)).toEqual(['recent', 'old']);
   });
+
+  it('expose le motif de rejet des entrees refusees par l API', () => {
+    const outbox = [
+      {
+        localId: 'local-ko',
+        payload: { solde: 100, dateCreation: '2025-01-01', type: 'LIVRET' },
+        failed: true,
+        failureReason: 'Type de compte inconnu.',
+      },
+    ];
+
+    const [entry] = mergeComptes([], outbox);
+    expect(entry).toMatchObject({
+      id: 'local-ko',
+      pending: true,
+      failed: true,
+      failureReason: 'Type de compte inconnu.',
+    });
+  });
+
+  it('marque les comptes serveur comme ni en attente ni rejetes', () => {
+    const [compte] = mergeComptes(
+      [normalizeCompte({ id: 'srv-9', solde: 5, dateCreation: '2024-01-01', type: 'COURANT' })],
+      [],
+    );
+    expect(compte).toMatchObject({ pending: false, failed: false });
+  });
 });
 
 describe('summarize', () => {

@@ -17,6 +17,7 @@ function App() {
   const {
     comptes,
     pendingCount,
+    failedCount,
     syncState,
     lastSync,
     error,
@@ -94,7 +95,9 @@ function App() {
         <article className="ledger-metric">
           <p className="ledger-metric__label">File locale</p>
           <p className="ledger-metric__value">{pendingCount}</p>
-          <p className="ledger-metric__hint">création(s) à pousser</p>
+          <p className={`ledger-metric__hint ${failedCount > 0 ? 'ledger-metric__hint--alert' : ''}`}>
+            {failedCount > 0 ? `${failedCount} rejeté(s)` : 'création(s) à pousser'}
+          </p>
         </article>
       </section>
 

@@ -48,11 +48,13 @@ export function normalizeCompte(raw) {
 }
 
 export function mergeComptes(serverComptes, outbox) {
-  const fromServer = serverComptes.map((compte) => ({ ...compte, pending: false }));
+  const fromServer = serverComptes.map((compte) => ({ ...compte, pending: false, failed: false }));
   const pending = outbox.map((entry) => ({
     ...entry.payload,
     id: entry.localId,
     pending: true,
+    failed: Boolean(entry.failed),
+    failureReason: entry.failureReason ?? null,
   }));
 
   return [...pending, ...fromServer].sort((left, right) => {

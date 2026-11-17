@@ -27,3 +27,7 @@
 ## Etat vide
 
 ![Etat vide](screenshots/07-etat-vide.png)
+
+## Rejet metier par l API
+
+![Rejet API](screenshots/08-rejet-api.png)

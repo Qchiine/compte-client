@@ -89,4 +89,24 @@ describe('App', () => {
     expect(typeof idempotencyKey).toBe('string');
     expect(idempotencyKey.length).toBeGreaterThan(8);
   });
+
+  it('affiche un rejet API sans conserver l entrée en file', async () => {
+    const rejection = new Error('Request failed with status code 422');
+    rejection.response = { status: 422, data: { message: 'Type de compte inconnu.' } };
+    api.createCompte.mockRejectedValue(rejection);
+    const user = userEvent.setup();
+
+    render(<App />);
+    await screen.findByText('srv-1');
+
+    await user.type(screen.getByLabelText(/solde initial/i), '100');
+    await user.type(screen.getByLabelText(/date d'ouverture/i), '2024-06-01');
+    await user.click(screen.getByRole('button', { name: /ajouter le compte/i }));
+
+    expect(await screen.findByText(/Type de compte inconnu/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('En attente')).not.toBeInTheDocument());
+
+    const storedOutbox = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.outbox) ?? '[]');
+    expect(storedOutbox.filter((entry) => entry.payload.solde === 100)).toHaveLength(0);
+  });
 });
